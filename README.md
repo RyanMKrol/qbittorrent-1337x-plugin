@@ -5,11 +5,12 @@ A qBittorrent search plugin for 1337x torrent site.
 ## Installation
 
 1. Install the required dependency:
+
    ```bash
    pip install 1337x
    ```
 
-2. Copy `leetx.py` to your qBittorrent search plugins directory
+2. Follow the [qBittorrent search plugin installation guide](https://github.com/qbittorrent/search-plugins/wiki/Install-search-plugins)
 
 ## Usage
 
