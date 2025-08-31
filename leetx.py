@@ -1,4 +1,4 @@
-# VERSION: 1.1
+# VERSION: 1.0
 # AUTHORS: Ryan Krol (based on hemantapkh/1337x API)
 # LICENSE: MIT License
 
@@ -89,6 +89,7 @@ class leetx(object):
                 category.GAMES,
                 category.MUSIC,
                 category.APPS,
+                category.ANIME
             ]
             
             all_torrents = []
