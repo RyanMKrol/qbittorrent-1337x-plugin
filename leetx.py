@@ -1,4 +1,4 @@
-# VERSION: 1.0
+# VERSION: 1.2
 # AUTHORS: Ryan Krol (based on hemantapkh/1337x API)
 # LICENSE: MIT License
 
