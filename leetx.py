@@ -1,5 +1,6 @@
 # VERSION: 1.0
-# AUTHORS: AI Assistant (based on hemantapkh/1337x API)
+# AUTHORS: Ryan Krol (based on hemantapkh/1337x API)
+# LICENSE: MIT License
 
 try:
     from py1337x import AsyncPy1337x, category, sort
@@ -22,14 +23,27 @@ class leetx(object):
     def __init__(self):
         self.torrents_api = AsyncPy1337x()
 
-    def parseResults(self, results):
+    async def parseResults(self, results):
         if not results or not hasattr(results, 'items') or not results.items:
             return
         
+        # Create tasks to get magnet links concurrently
+        magnet_tasks = []
         for torrent in results.items:
+            magnet_tasks.append(self._get_magnet_link(torrent))
+        
+        # Get all magnet links concurrently
+        magnet_results = await asyncio.gather(*magnet_tasks, return_exceptions=True)
+        
+        # Process results
+        for torrent, magnet_result in zip(results.items, magnet_results):
             try:
+                # Skip if magnet link fetch failed
+                if isinstance(magnet_result, Exception) or not magnet_result:
+                    continue
+                
                 data = {
-                    'link': torrent.url,
+                    'link': magnet_result,
                     'name': torrent.name,
                     'size': str(torrent.size),
                     'seeds': str(torrent.seeders),
@@ -41,6 +55,24 @@ class leetx(object):
                 prettyPrinter(data)
             except Exception:
                 continue
+    
+    async def _get_magnet_link(self, torrent):
+        try:
+            # Try using torrent_id first, fallback to link
+            torrent_info = None
+            if hasattr(torrent, 'torrent_id'):
+                torrent_info = await self.torrents_api.info(torrent_id=torrent.torrent_id)
+            else:
+                torrent_info = await self.torrents_api.info(link=torrent.url)
+            
+            # The magnet link property might be 'magnet' or 'magnet_link'
+            if torrent_info:
+                return (getattr(torrent_info, 'magnet', None) or 
+                       getattr(torrent_info, 'magnet_link', None))
+            return None
+        except Exception as e:
+            print(f"Error getting magnet for {getattr(torrent, 'name', 'unknown')}: {e}")
+            return None
 
     def search(self, what, cat='all'):
         try:
@@ -93,7 +125,7 @@ class leetx(object):
             # Create a mock results object to pass to parseResults
             if all_torrents:
                 mock_results = type('MockResults', (), {'items': all_torrents})()
-                self.parseResults(mock_results)
+                await self.parseResults(mock_results)
                 
         except Exception:
             return
